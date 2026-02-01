@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UniDocVerse — Privacy-First AI Document Intelligence</title>
+<meta name="description" content="UniDocVerse is a privacy-first, fully local AI document intelligence platform. No cloud. No data leaks. Analyze any document type with an 11-agent pipeline — entirely on your infrastructure." />
+<meta name="keywords" content="privacy-first document analysis, local AI, enterprise document intelligence, HIPAA GDPR compliant, offline AI" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0c0f;
+    --bg-card: #111418;
+    --bg-card-hover: #161b22;
+    --border: #1e2530;
+    --border-light: #2a3340;
+    --green: #3fb950;
+    --green-dim: rgba(63, 185, 80, 0.12);
+    --green-glow: rgba(63, 185, 80, 0.25);
+    --text: #e2e8f0;
+    --text-dim: #8b949e;
+    --text-dimmer: #484f58;
+    --accent: #58a6ff;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --font-mono: 'DM Mono', 'Fira Code', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── NOISE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    opacity: 0.028;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 18px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(10,12,15,0.7);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(30,37,48,0.5);
+    transition: background 0.3s;
+  }
+
+  .nav-logo {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--text);
+    text-decoration: none;
+    letter-spacing: -0.5px;
+  }
+  .nav-logo span { color: var(--green); }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+
+  .nav-cta {
+    background: var(--green);
+    color: #0a0c0f;
+    border: none;
+    padding: 9px 22px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    letter-spacing: 0.3px;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .nav-cta:hover { background: #4ec862; transform: translateY(-1px); }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 140px 24px 100px;
+    position: relative;
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 700px;
+    height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(63,185,80,0.08) 0%, transparent 70%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--green-dim);
+    border: 1px solid rgba(63,185,80,0.2);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 0.78rem;
+    color: var(--green);
+    font-family: var(--font-mono);
+    margin-bottom: 36px;
+    animation: fadeDown 0.7s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .hero-badge .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2.8rem, 6vw, 5rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -2px;
+    color: var(--text);
+    max-width: 780px;
+    animation: fadeDown 0.8s 0.1s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .hero h1 em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--green);
+  }
+
+  .hero-sub {
+    color: var(--text-dim);
+    font-size: 1.05rem;
+    max-width: 560px;
+    margin-top: 24px;
+    line-height: 1.7;
+    animation: fadeDown 0.8s 0.2s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 14px;
+    margin-top: 44px;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fadeDown 0.8s 0.3s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--green);
+    color: #0a0c0f;
+    border: none;
+    padding: 14px 30px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    box-shadow: 0 0 24px var(--green-glow);
+  }
+  .btn-primary:hover {
+    background: #4ec862;
+    transform: translateY(-2px);
+    box-shadow: 0 0 36px var(--green-glow);
+  }
+  .btn-primary svg { width: 16px; height: 16px; }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border-light);
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover {
+    border-color: var(--green);
+    color: var(--green);
+    background: var(--green-dim);
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 48px;
+    margin-top: 72px;
+    animation: fadeDown 0.8s 0.45s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .hero-stat { text-align: center; }
+  .hero-stat .num {
+    font-family: var(--font-mono);
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .hero-stat .label {
+    font-size: 0.75rem;
+    color: var(--text-dimmer);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── TRUST BAR ─── */
+  .trust-bar {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 48px;
+    flex-wrap: wrap;
+  }
+  .trust-bar span {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dimmer);
+    white-space: nowrap;
+  }
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-dim);
+    font-size: 0.82rem;
+  }
+  .trust-item svg { width: 16px; height: 16px; color: var(--green); flex-shrink: 0; }
+
+  /* ─── SECTION UTIL ─── */
+  section { padding: 100px 24px; }
+  .container { max-width: 1120px; margin: 0 auto; }
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--green);
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.9rem, 3.5vw, 2.6rem);
+    font-weight: 600;
+    letter-spacing: -1px;
+    line-height: 1.2;
+    color: var(--text);
+    max-width: 600px;
+  }
+  .section-sub {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    max-width: 520px;
+    margin-top: 16px;
+    line-height: 1.7;
+  }
+  .section-header { margin-bottom: 64px; }
+  .section-header.center { text-align: center; }
+  .section-header.center .section-title,
+  .section-header.center .section-sub { margin-left: auto; margin-right: auto; }
+
+  /* ─── PRIVACY STRIP ─── */
+  .privacy-strip {
+    background: linear-gradient(135deg, rgba(63,185,80,0.06) 0%, transparent 60%);
+    border: 1px solid rgba(63,185,80,0.15);
+    border-radius: 16px;
+    padding: 56px 48px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+    margin-bottom: 80px;
+  }
+
+  .privacy-strip .left .section-label { margin-bottom: 12px; }
+
+  .privacy-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 28px;
+  }
+  .privacy-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 0.88rem;
+    color: var(--text-dim);
+  }
+  .privacy-list .check {
+    flex-shrink: 0;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--green-dim);
+    border: 1px solid rgba(63,185,80,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+  .privacy-list .check svg { width: 11px; height: 11px; color: var(--green); }
+
+  .privacy-code {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.9;
+    color: var(--text-dim);
+  }
+  .privacy-code .comment { color: var(--text-dimmer); }
+  .privacy-code .keyword { color: var(--green); }
+  .privacy-code .string { color: #a5d6ff; }
+  .privacy-code .func { color: #d2a8ff; }
+
+  /* ─── FEATURES ─── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .feature-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 32px 28px;
+    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .feature-card:hover {
+    border-color: rgba(63,185,80,0.3);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  }
+  .feature-card:hover::before { opacity: 1; }
+
+  .feature-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--green-dim);
+    border: 1px solid rgba(63,185,80,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 22px;
+  }
+  .feature-icon svg { width: 22px; height: 22px; color: var(--green); }
+
+  .feature-card h3 {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 10px;
+    letter-spacing: -0.3px;
+  }
+  .feature-card p {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.65;
+  }
+
+  /* ─── AGENTS SECTION ─── */
+  .agents-section { background: var(--bg); }
+  .agents-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .agent-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    transition: border-color 0.25s, background 0.25s;
+  }
+  .agent-card:hover {
+    border-color: rgba(63,185,80,0.25);
+    background: var(--bg-card-hover);
+  }
+
+  .agent-num {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--green);
+    background: var(--green-dim);
+    border: 1px solid rgba(63,185,80,0.2);
+    border-radius: 6px;
+    padding: 3px 8px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .agent-card h4 {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .agent-card p {
+    font-size: 0.72rem;
+    color: var(--text-dimmer);
+    line-height: 1.5;
+  }
+
+  /* ─── SCREENSHOTS ─── */
+  .screenshots-section { background: var(--bg-card); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+  .screenshot-showcase {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .screenshot-frame {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .screenshot-frame:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+  }
+
+  .screenshot-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-card);
+  }
+  .titlebar-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .titlebar-dot.red { background: #ff5f57; }
+  .titlebar-dot.yellow { background: #ffbd2e; }
+  .titlebar-dot.green { background: #28c840; }
+  .titlebar-title {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-dimmer);
+    margin-left: 8px;
+  }
+
+  .screenshot-content {
+    padding: 24px 20px;
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* Analytics mock */
+  .mock-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .mock-stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .mock-stat .ms-num {
+    font-family: var(--font-mono);
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .mock-stat .ms-label {
+    font-size: 0.65rem;
+    color: var(--text-dimmer);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-top: 3px;
+  }
+  .mock-stat .ms-badge {
+    font-size: 0.6rem;
+    color: var(--green);
+    background: var(--green-dim);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+  }
+
+  .mock-bar-group { margin-top: 8px; }
+  .mock-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    color: var(--text-dimmer);
+    margin-bottom: 5px;
+  }
+  .mock-bar-track {
+    height: 6px;
+    background: var(--bg-card);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .mock-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--green);
+    transition: width 1.2s cubic-bezier(0.22,1,0.36,1);
+  }
+
+  /* Doc list mock */
+  .mock-doc-list { display: flex; flex-direction: column; gap: 8px; }
+  .mock-doc-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .mock-doc-icon {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .mock-doc-icon svg { width: 14px; height: 14px; }
+  .mock-doc-info { flex: 1; min-width: 0; }
+  .mock-doc-name { font-size: 0.72rem; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mock-doc-type { font-size: 0.62rem; color: var(--text-dimmer); }
+  .mock-doc-status {
+    font-size: 0.6rem;
+    font-family: var(--font-mono);
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  .status-done { background: var(--green-dim); color: var(--green); }
+  .status-proc { background: rgba(88,166,255,0.1); color: var(--accent); }
+
+  /* Search mock */
+  .mock-search-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+  }
+  .mock-search-bar svg { width: 14px; height: 14px; color: var(--text-dimmer); }
+  .mock-search-bar span { font-size: 0.72rem; color: var(--text-dimmer); font-family: var(--font-mono); }
+
+  .mock-search-result {
+    border-left: 2px solid var(--green);
+    padding: 12px 14px;
+    background: var(--bg-card);
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 8px;
+  }
+  .mock-search-result .sr-title { font-size: 0.75rem; color: var(--text); font-weight: 500; margin-bottom: 4px; }
+  .mock-search-result .sr-excerpt { font-size: 0.67rem; color: var(--text-dimmer); line-height: 1.5; }
+  .mock-search-result .sr-meta { font-size: 0.6rem; color: var(--text-dimmer); margin-top: 6px; font-family: var(--font-mono); }
+  .mock-search-result .sr-match { color: var(--green); }
+
+  /* ─── DOWNLOAD ─── */
+  .download-section { text-align: center; }
+  .download-box {
+    max-width: 680px;
+    margin: 0 auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 56px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .download-box::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: -60px; right: -60px;
+    height: 200px;
+    background: radial-gradient(ellipse at center, rgba(63,185,80,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .download-box h3 {
+    font-family: var(--font-display);
+    font-size: 1.7rem;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .download-box p {
+    color: var(--text-dim);
+    font-size: 0.88rem;
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .download-box .btn-primary { position: relative; }
+
+  .download-meta {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+  .download-meta span {
+    font-size: 0.72rem;
+    color: var(--text-dimmer);
+    font-family: var(--font-mono);
+  }
+  .download-meta span svg { width: 12px; height: 12px; vertical-align: -1px; margin-right: 4px; color: var(--green); }
+
+  /* ─── LICENSE REQUEST ─── */
+  .license-section { background: var(--bg-card); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .license-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: center;
+  }
+
+  .license-form {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+  }
+  .license-form h3 {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+  }
+  .license-form > p {
+    color: var(--text-dim);
+    font-size: 0.82rem;
+    margin-bottom: 28px;
+  }
+
+  .form-group { margin-bottom: 18px; }
+  .form-group label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+  .form-group input, .form-group select {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-size: 0.82rem;
+    font-family: var(--font-body);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .form-group input:focus, .form-group select:focus { border-color: var(--green); }
+  .form-group input::placeholder { color: var(--text-dimmer); }
+  .form-group select option { background: var(--bg-card); color: var(--text); }
+
+  .form-submit {
+    width: 100%;
+    background: var(--green);
+    color: #0a0c0f;
+    border: none;
+    padding: 13px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .form-submit:hover { background: #4ec862; transform: translateY(-1px); }
+
+  .license-perks { display: flex; flex-direction: column; gap: 20px; }
+  .license-perk { display: flex; align-items: flex-start; gap: 16px; }
+  .license-perk-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: var(--green-dim);
+    border: 1px solid rgba(63,185,80,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .license-perk-icon svg { width: 20px; height: 20px; color: var(--green); }
+  .license-perk h4 { font-size: 0.88rem; color: var(--text); margin-bottom: 3px; font-weight: 600; }
+  .license-perk p { font-size: 0.77rem; color: var(--text-dim); line-height: 1.5; }
+
+  /* ─── TESTIMONIALS ─── */
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .testimonial-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 220px;
+    transition: border-color 0.25s;
+  }
+  .testimonial-card:hover { border-color: var(--border-light); }
+
+  .testimonial-stars {
+    color: #f0883e;
+    font-size: 0.85rem;
+    letter-spacing: 3px;
+    margin-bottom: 16px;
+  }
+  .testimonial-card blockquote {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    font-style: italic;
+    flex: 1;
+  }
+  .testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+  .testimonial-avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--green-dim);
+    border: 1px solid rgba(63,185,80,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: var(--green);
+    font-weight: 600;
+    font-family: var(--font-mono);
+  }
+  .testimonial-author-info .name { font-size: 0.78rem; color: var(--text); font-weight: 600; }
+  .testimonial-author-info .role { font-size: 0.68rem; color: var(--text-dimmer); }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 64px 24px 40px;
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 48px;
+    margin-bottom: 48px;
+  }
+  .footer-brand .nav-logo { display: inline-block; margin-bottom: 14px; font-size: 1.1rem; }
+  .footer-brand p { font-size: 0.78rem; color: var(--text-dimmer); line-height: 1.7; max-width: 280px; }
+
+  .footer-col h4 {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dimmer);
+    margin-bottom: 18px;
+  }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-col a {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .footer-col a:hover { color: var(--green); }
+
+  .footer-bottom {
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-bottom p { font-size: 0.72rem; color: var(--text-dimmer); }
+  .footer-social { display: flex; gap: 18px; }
+  .footer-social a { color: var(--text-dimmer); transition: color 0.2s; }
+  .footer-social a:hover { color: var(--green); }
+  .footer-social svg { width: 18px; height: 18px; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    .features-grid { grid-template-columns: 1fr 1fr; }
+    .agents-grid { grid-template-columns: 1fr 1fr; }
+    .testimonials-grid { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .license-layout { grid-template-columns: 1fr; }
+    .privacy-strip { grid-template-columns: 1fr; }
+    .screenshot-showcase { grid-template-columns: 1fr; max-width: 520px; margin: 0 auto; }
+  }
+  @media (max-width: 600px) {
+    nav { padding: 16px 20px; }
+    .nav-links { display: none; }
+    .features-grid { grid-template-columns: 1fr; }
+    .agents-grid { grid-template-columns: 1fr; }
+    .hero-stats { gap: 28px; }
+    .footer-grid { grid-template-columns: 1fr; }
+    .trust-bar { gap: 16px; flex-direction: column; align-items: flex-start; }
+    .license-form { padding: 28px 24px; }
+    .download-box { padding: 40px 24px; }
+  }
+
+  /* ─── SCROLL REVEAL ─── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ─── FORM STATES ─── */
+  .form-success {
+    display: none;
+    text-align: center;
+    padding: 20px 0;
+  }
+  .form-success .success-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--green-dim);
+    border: 1px solid rgba(63,185,80,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+  .form-success .success-icon svg { width: 24px; height: 24px; color: var(--green); }
+  .form-success h4 { color: var(--text); font-size: 0.95rem; margin-bottom: 6px; }
+  .form-success p { color: var(--text-dim); font-size: 0.78rem; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">Uni<span>Doc</span>Verse</a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pipeline">Pipeline</a></li>
+    <li><a href="#screenshots">Demo</a></li>
+    <li><a href="#download">Download</a></li>
+    <li><a href="#license">License</a></li>
+  </ul>
+  <a href="#download" class="nav-cta">Download Free</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-badge"><span class="dot"></span> Now available — macOS ARM64</div>
+  <h1>Document intelligence,<br><em>without the cloud.</em></h1>
+  <p class="hero-sub">UniDocVerse is a privacy-first AI platform that analyzes any document entirely on your local infrastructure. No data leaves your machine. Ever.</p>
+  <div class="hero-actions">
+    <a href="#download" class="btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download for macOS
+    </a>
+    <a href="#license" class="btn-secondary">Request License</a>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="num">11</div>
+      <div class="label">AI Agents</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">17+</div>
+      <div class="label">Doc Types</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">100%</div>
+      <div class="label">Success Rate</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">0</div>
+      <div class="label">Cloud Calls</div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+  <span>Trusted for</span>
+  <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> HIPAA Compliant</div>
+  <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> GDPR Ready</div>
+  <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Zero Data Leakage</div>
+  <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Fully Offline</div>
+  <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="8" r="4"/></svg> Enterprise Grade</div>
+</div>
+
+<!-- PRIVACY STRIP -->
+<section>
+  <div class="container">
+    <div class="privacy-strip reveal">
+      <div class="left">
+        <div class="section-label">Privacy Architecture</div>
+        <h2 class="section-title" style="font-family: var(--font-display); font-size: 1.6rem; letter-spacing: -0.5px;">Your data stays <span style="color: var(--green);">exactly</span> where it should</h2>
+        <ul class="privacy-list">
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span> No cloud calls — all AI runs locally via Ollama</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span> No external APIs — embeddings generated on-device</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span> No telemetry, tracking, or analytics sent anywhere</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span> No internet required — works fully air-gapped</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span> No licensing violations or compliance conflicts</li>
+        </ul>
+      </div>
+      <div class="right">
+        <div class="privacy-code">
+          <span class="comment"># UniDocVerse processing flow</span><br>
+          <span class="keyword">class</span> <span class="func">UniDocVerse</span>:<br>
+          &nbsp;&nbsp;<span class="keyword">def</span> <span class="func">analyze</span>(doc):<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># All processing is local</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;cloud_calls = <span class="string">0</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;data_sent = <span class="string">"nowhere"</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;internet = <span class="string">False</span><br><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># 11 agents run on-device</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;pipeline = <span class="func">LangGraph</span>(<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;agents=<span class="string">11</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;model=<span class="string">"ollama/mistral"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;embeddings=<span class="string">"local"</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;">)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> pipeline.<span class="func">run</span>(doc)
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-label">Capabilities</div>
+      <h2 class="section-title">Built for industries where data security is non-negotiable</h2>
+      <p class="section-sub">UniDocVerse handles every document type with specialized analyzers — from bank statements to medical records to legal contracts.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <h3>Zero Cloud Dependency</h3>
+        <p>All AI processing — OCR, extraction, embeddings, analytics, classification, and search — runs entirely within your local infrastructure.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+        <h3>Hybrid Semantic Search</h3>
+        <p>Find documents instantly with 768-dimensional vector embeddings powered by pgvector. Combines semantic and keyword search locally.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div>
+        <h3>Dynamic Analytics</h3>
+        <p>Automatically generated dashboards with charts, tables, and insights tailored to each document type. No manual configuration needed.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3>Cross-Document Linking</h3>
+        <p>Automatically discovers relationships between documents via entity linking. See which contracts reference the same parties.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+        <h3>Adaptive Classification</h3>
+        <p>Documents are auto-classified and routed to specialized analyzers. Unknown types fall back to a universal parser — nothing fails.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
+        <h3>17+ Document Types</h3>
+        <p>From bank statements and tax forms to medical records, contracts, resumes, and invoices — every format is supported out of the box.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 AGENTS PIPELINE -->
+<section id="pipeline" class="agents-section">
+  <div class="container">
+    <div class="section-header center reveal">
+      <div class="section-label">Architecture</div>
+      <h2 class="section-title">An 11-agent pipeline that processes every document end-to-end</h2>
+      <p class="section-sub">Each agent is purpose-built. Together they form a sequential workflow orchestrated by LangGraph with shared state across the entire pipeline.</p>
+    </div>
+    <div class="agents-grid">
+      <div class="agent-card reveal"><span class="agent-num">01</span><div><h4>Ingest</h4><p>Validates upload integrity and initializes document metadata</p></div></div>
+      <div class="agent-card reveal"><span class="agent-num">02</span><div><h4>Parse</h4><p>Universal extraction with classification-driven specialized re-parsing</p></div></div>
+      <div class="agent-card reveal"><span class="agent-num">03</span><div><h4>Cleanup</h4><p>Normalizes text — removes artifacts, preserves structure and metadata</p></div></div>
+      <div class="agent-card reveal"><span class="agent-num">04</span><div><h4>Doc Analysis</h4><p>Routes to domain-specific analyzer, generates UI visualization schema</p></div></div>
+      <div class="agent-card reveal"><span class="agent-num">05</span><div><h4>Analyze</h4><p>Generates concise summary and extracts structured key points</p></div></div>
+      <div class="agent-card reveal"><span class="agent-num">06</span><div><h4>Search</h4><p>Creates 768-dim embeddings and extracts keywords for hybrid search</p></div></div>
+      <div class="agent-card reveal"><span class="agent-num">07</span><div><h4>Quality Check</h4><p>Validates parsing quality and assigns confidence scores</p></div></div>
+      <div class="agent-card reveal"><span class="agent-num">08</span><div><h4>Insights</h4><p>Generates actionable insights and recommendations from analysis</p></div></div>
+      <div class="agent-card reveal"><span class="agent-num">09</span><div><h4>Metrics</h4><p>Calculates quantitative metrics — word count, structure analysis</p></div></div>
+      <div class="agent-card reveal"><span class="agent-num">10</span><div><h4>Entity Link</h4><p>Extracts entities and discovers cross-document relationships</p></div></div>
+      <div class="agent-card reveal"><span class="agent-num">11</span><div><h4>Finalize</h4><p>Persists to PostgreSQL, saves embeddings, returns response to UI</p></div></div>
+      <div class="agent-card reveal" style="background: linear-gradient(135deg, rgba(63,185,80,0.08), var(--bg-card)); border-color: rgba(63,185,80,0.25);">
+        <span class="agent-num" style="background: var(--green); color: #0a0c0f;">✓</span>
+        <div><h4 style="color: var(--green);">Complete</h4><p>100% success rate across 54 documents and 17 types</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCREENSHOTS -->
+<section id="screenshots" class="screenshots-section">
+  <div class="container">
+    <div class="section-header center reveal">
+      <div class="section-label">Demo</div>
+      <h2 class="section-title">See UniDocVerse in action</h2>
+      <p class="section-sub">Real screenshots from the application — analytics, document processing, and semantic search.</p>
+    </div>
+    <div class="screenshot-showcase reveal">
+      <!-- Analytics -->
+      <div class="screenshot-frame">
+        <div class="screenshot-titlebar">
+          <span class="titlebar-dot red"></span><span class="titlebar-dot yellow"></span><span class="titlebar-dot green"></span>
+          <span class="titlebar-title">UniDocVerse — Analytics</span>
+        </div>
+        <div class="screenshot-content">
+          <div class="mock-stats">
+            <div class="mock-stat"><div class="ms-num">54 <span class="ms-badge">+12%</span></div><div class="ms-label">Processed</div></div>
+            <div class="mock-stat"><div class="ms-num" style="color: var(--green);">100%</div><div class="ms-label">Success Rate</div></div>
+            <div class="mock-stat"><div class="ms-num">4.5<span style="font-size:0.7rem; color: var(--text-dimmer);"> min</span></div><div class="ms-label">Avg Time</div></div>
+            <div class="mock-stat"><div class="ms-num">0.1<span style="font-size:0.7rem; color: var(--text-dimmer);"> GB</span></div><div class="ms-label">Storage</div></div>
+          </div>
+          <div class="mock-bar-group">
+            <div class="mock-bar-label"><span>bank_statement</span><span>7.4 min</span></div>
+            <div class="mock-bar-track"><div class="mock-bar-fill" style="width:92%"></div></div>
+            <div class="mock-bar-label"><span>contract</span><span>4.1 min</span></div>
+            <div class="mock-bar-track"><div class="mock-bar-fill" style="width:51%"></div></div>
+            <div class="mock-bar-label"><span>medical_record</span><span>5.0 min</span></div>
+            <div class="mock-bar-track"><div class="mock-bar-fill" style="width:62%"></div></div>
+            <div class="mock-bar-label"><span>tax_form</span><span>2.8 min</span></div>
+            <div class="mock-bar-track"><div class="mock-bar-fill" style="width:35%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Document List -->
+      <div class="screenshot-frame">
+        <div class="screenshot-titlebar">
+          <span class="titlebar-dot red"></span><span class="titlebar-dot yellow"></span><span class="titlebar-dot green"></span>
+          <span class="titlebar-title">UniDocVerse — Documents</span>
+        </div>
+        <div class="screenshot-content">
+          <div class="mock-doc-list">
+            <div class="mock-doc-item">
+              <div class="mock-doc-icon" style="background: rgba(63,185,80,0.1);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+              <div class="mock-doc-info"><div class="mock-doc-name">Q4_Bank_Statement_2025.pdf</div><div class="mock-doc-type">bank_statement • 7.4 min</div></div>
+              <span class="mock-doc-status status-done">Done</span>
+            </div>
+            <div class="mock-doc-item">
+              <div class="mock-doc-icon" style="background: rgba(88,166,255,0.1);"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+              <div class="mock-doc-info"><div class="mock-doc-name">Employment_Contract_NDA.docx</div><div class="mock-doc-type">contract • 4.1 min</div></div>
+              <span class="mock-doc-status status-done">Done</span>
+            </div>
+            <div class="mock-doc-item">
+              <div class="mock-doc-icon" style="background: rgba(240,136,62,0.1);"><svg viewBox="0 0 24 24" fill="none" stroke="#f0883e" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+              <div class="mock-doc-info"><div class="mock-doc-name">Medical_Record_Jan2026.pdf</div><div class="mock-doc-type">medical_record • 5.0 min</div></div>
+              <span class="mock-doc-status status-done">Done</span>
+            </div>
+            <div class="mock-doc-item">
+              <div class="mock-doc-icon" style="background: rgba(210,168,255,0.1);"><svg viewBox="0 0 24 24" fill="none" stroke="#d2a8ff" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+              <div class="mock-doc-info"><div class="mock-doc-name">Resume_Senior_Dev.pdf</div><div class="mock-doc-type">resume • 4.9 min</div></div>
+              <span class="mock-doc-status status-proc">Processing</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <div class="screenshot-frame">
+        <div class="screenshot-titlebar">
+          <span class="titlebar-dot red"></span><span class="titlebar-dot yellow"></span><span class="titlebar-dot green"></span>
+          <span class="titlebar-title">UniDocVerse — Search</span>
+        </div>
+        <div class="screenshot-content">
+          <div class="mock-search-bar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span>find all contracts with NDA clause</span>
+          </div>
+          <div class="mock-search-result">
+            <div class="sr-title">Employment_Contract_NDA.docx</div>
+            <div class="sr-excerpt">...the employee agrees to maintain <span class="sr-match">confidentiality</span> regarding all proprietary information for a period of...</div>
+            <div class="sr-meta">contract • relevance: 0.94 • semantic match</div>
+          </div>
+          <div class="mock-search-result">
+            <div class="sr-title">Vendor_Agreement_2025.pdf</div>
+            <div class="sr-excerpt">...includes a non-disclosure agreement (<span class="sr-match">NDA</span>) binding both parties to strict information security protocols...</div>
+            <div class="sr-meta">contract • relevance: 0.87 • keyword match</div>
+          </div>
+          <div class="mock-search-result">
+            <div class="sr-title">Company_Policy_IP.docx</div>
+            <div class="sr-excerpt">...intellectual property clause supersedes all <span class="sr-match">NDA</span> provisions outlined in individual employment...</div>
+            <div class="sr-meta">document • relevance: 0.71 • cross-doc link</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DOWNLOAD -->
+<section id="download" class="download-section">
+  <div class="container">
+    <div class="download-box reveal">
+      <h3>Ready to take control of your documents?</h3>
+      <p>Download UniDocVerse for macOS. Free to use. No account required. No data leaves your machine.</p>
+      <a href="#" class="btn-primary" onclick="event.preventDefault(); alert('DMG download will be hosted on Cloudflare R2 — link coming soon.');">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download for macOS (ARM64)
+      </a>
+      <div class="download-meta">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ~2 min install</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> macOS 13+ required</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> No account needed</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LICENSE REQUEST -->
+<section id="license" class="license-section">
+  <div class="container">
+    <div class="license-layout">
+      <div class="license-form reveal">
+        <div id="formContent">
+          <h3>Request a License</h3>
+          <p>Get a free license key for research, academic, or enterprise use.</p>
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" placeholder="Your full name" id="licenseName" />
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" placeholder="you&#64;company.com" id="licenseEmail" />
+          </div>
+          <div class="form-group">
+            <label>Organization</label>
+            <input type="text" placeholder="Company or University" id="licenseOrg" />
+          </div>
+          <div class="form-group">
+            <label>Use Case</label>
+            <select id="licenseUse">
+              <option value="">Select your use case</option>
+              <option value="enterprise">Enterprise</option>
+              <option value="research">Research / Academic</option>
+              <option value="healthcare">Healthcare</option>
+              <option value="legal">Legal</option>
+              <option value="finance">Finance</option>
+              <option value="government">Government</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <button class="form-submit" onclick="submitLicenseForm()">Request Free License</button>
+        </div>
+        <div class="form-success" id="formSuccess">
+          <div class="success-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <h4>License Request Submitted!</h4>
+          <p>You'll receive your license key at the email you provided within 24 hours.</p>
+        </div>
+      </div>
+      <div class="license-perks reveal">
+        <div class="section-label">What You Get</div>
+        <div class="license-perk">
+          <div class="license-perk-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div><h4>Full Access</h4><p>Unlock all 11 agents, unlimited document processing, and advanced analytics with a single license key.</p></div>
+        </div>
+        <div class="license-perk">
+          <div class="license-perk-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <div><h4>RSA-Secured</h4><p>Licenses are cryptographically signed with RSA-4096. Tied to your email — cannot be shared or forged.</p></div>
+        </div>
+        <div class="license-perk">
+          <div class="license-perk-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div><h4>Lifetime License</h4><p>No expiry. No renewals. No subscriptions. Your license works forever with all future updates.</p></div>
+        </div>
+        <div class="license-perk">
+          <div class="license-perk-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div><h4>Priority Support</h4><p>Licensed users get direct access to the development team for any issues or feature requests.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="container">
+    <div class="section-header center reveal">
+      <div class="section-label">Testimonials</div>
+      <h2 class="section-title">What people are saying</h2>
+      <p class="section-sub">Early users across industries share their experience with UniDocVerse.</p>
+    </div>
+    <div class="testimonials-grid">
+      <div class="testimonial-card reveal">
+        <div>
+          <div class="testimonial-stars">★★★★★</div>
+          <blockquote>"Finally — an AI document tool that doesn't phone home. We process sensitive financial statements daily. UniDocVerse is the first tool I trust with our client data."</blockquote>
+        </div>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">SR</div>
+          <div class="testimonial-author-info"><div class="name">Sarah Rodriguez</div><div class="role">CFO, FinTech Startup</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card reveal">
+        <div>
+          <div class="testimonial-stars">★★★★★</div>
+          <blockquote>"The cross-document entity linking is remarkable. It found relationships between contracts we hadn't noticed in months of manual review. A game-changer for our legal team."</blockquote>
+        </div>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">JC</div>
+          <div class="testimonial-author-info"><div class="name">James Chen</div><div class="role">Senior Counsel, Law Firm</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card reveal">
+        <div>
+          <div class="testimonial-stars">★★★★★</div>
+          <blockquote>"HIPAA compliance was our biggest blocker with AI tools. UniDocVerse solved it entirely — zero cloud, zero risk. Our compliance team signed off immediately."</blockquote>
+        </div>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">MP</div>
+          <div class="testimonial-author-info"><div class="name">Dr. Maya Patel</div><div class="role">Director, Healthcare Analytics</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="#" class="nav-logo">Uni<span>Doc</span>Verse</a>
+        <p>Privacy-first AI document intelligence for enterprises worldwide. Built for industries where confidentiality and compliance are mandatory.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#pipeline">Pipeline</a></li>
+          <li><a href="#screenshots">Demo</a></li>
+          <li><a href="#download">Download</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Research</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Press Kit</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">License Agreement</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 UniDocVerse. Created by Vijay Kumar Bomma. All rights reserved.</p>
+      <div class="footer-social">
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ─── SCROLL REVEAL ───
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+reveals.forEach(el => observer.observe(el));
+
+// ─── LICENSE FORM ───
+function submitLicenseForm() {
+  const name = document.getElementById('licenseName').value.trim();
+  const email = document.getElementById('licenseEmail').value.trim();
+  const org = document.getElementById('licenseOrg').value.trim();
+  const use = document.getElementById('licenseUse').value;
+
+  if (!name || !email || !org || !use) {
+    alert('Please fill in all fields.');
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    alert('Please enter a valid email address.');
+    return;
+  }
+
+  // Show success state
+  document.getElementById('formContent').style.display = 'none';
+  document.getElementById('formSuccess').style.display = 'block';
+
+  // Log to console for now (replace with backend endpoint later)
+  console.log('License Request:', { name, email, org, use });
+}
+
+// ─── NAV ACTIVE STATE ───
+window.addEventListener('scroll', () => {
+  const nav = document.querySelector('nav');
+  nav.style.background = window.scrollY > 60
+    ? 'rgba(10,12,15,0.92)'
+    : 'rgba(10,12,15,0.7)';
+});
+</script>
+</body>
+</html>
