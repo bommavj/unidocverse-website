@@ -930,6 +930,24 @@
   .form-success .success-icon svg { width: 24px; height: 24px; color: var(--green); }
   .form-success h4 { color: var(--text); font-size: 0.95rem; margin-bottom: 6px; }
   .form-success p { color: var(--text-dim); font-size: 0.78rem; }
+BLOCK (around line 700-800) -->
+<style>
+/* Rating picker */
+.rating-picker {
+  display:flex;
+  gap:8px;
+  font-size:2rem;
+  cursor:pointer;
+}
+.rating-star {
+  color:#2a3340;
+  transition:color 0.2s;
+  user-select:none;
+}
+.rating-star:hover,
+.rating-star.active {
+  color:#f0883e;
+}
 </style>
 </head>
 <body>
@@ -1246,7 +1264,7 @@
               <option value="legal">Legal</option>
               <option value="finance">Finance</option>
               <option value="government">Government</option>
-              <option value="other">and Many Others</option>
+              <option value="other">Other</option>
             </select>
           </div>
           <button class="form-submit" onclick="submitLicenseForm()">Request Free License</button>
@@ -1269,7 +1287,7 @@
         </div>
         <div class="license-perk">
           <div class="license-perk-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-          <div><h4>License</h4><p>Initial 3 months and renewals.</p></div>
+          <div><h4>Lifetime License</h4><p>No expiry. No renewals. No subscriptions. Your license works forever with all future updates.</p></div>
         </div>
         <div class="license-perk">
           <div class="license-perk-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
@@ -1322,6 +1340,63 @@
     </div>
   </div>
 </section>
+
+<!-- SUBMIT TESTIMONIAL FORM -->
+<section id="submit-testimonial" style="background:var(--bg-card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="container">
+    <div class="section-header center reveal">
+      <div class="section-label">Share Your Experience</div>
+      <h2 class="section-title">Have you used UniDocVerse?</h2>
+      <p class="section-sub">We'd love to hear about your experience. Your testimonial helps others discover the platform.</p>
+    </div>
+    <div style="max-width:640px;margin:0 auto;">
+      <div class="license-form reveal" id="testimonialFormContainer">
+        <div id="testimonialFormContent">
+          <h3 style="margin-bottom:20px;">Submit Your Testimonial</h3>
+          <div class="form-group">
+            <label>Your Name *</label>
+            <input type="text" placeholder="Full name" id="testName" />
+          </div>
+          <div class="form-group">
+            <label>Email Address *</label>
+            <input type="email" placeholder="you@company.com" id="testEmail" />
+          </div>
+          <div class="form-group">
+            <label>Your Role *</label>
+            <input type="text" placeholder="e.g., Director of Operations" id="testRole" />
+          </div>
+          <div class="form-group">
+            <label>Company / Organization</label>
+            <input type="text" placeholder="Optional" id="testCompany" />
+          </div>
+          <div class="form-group">
+            <label>Your Experience *</label>
+            <textarea id="testQuote" placeholder="Tell us about your experience with UniDocVerse..." style="width:100%;background:var(--bg-card);border:1px solid var(--border-light);border-radius:8px;padding:11px 14px;color:var(--text);font-size:0.82rem;font-family:var(--font-body);min-height:120px;resize:vertical;outline:none;" maxlength="500"></textarea>
+            <div style="font-size:0.7rem;color:var(--text-dimmer);margin-top:4px;text-align:right;"><span id="quoteCount">0</span> / 500</div>
+          </div>
+          <div class="form-group">
+            <label>Rating *</label>
+            <div class="rating-picker" id="ratingPicker">
+              <span class="rating-star" data-rating="1">★</span>
+              <span class="rating-star" data-rating="2">★</span>
+              <span class="rating-star" data-rating="3">★</span>
+              <span class="rating-star" data-rating="4">★</span>
+              <span class="rating-star" data-rating="5">★</span>
+            </div>
+          </div>
+          <button class="form-submit" id="submitTestBtn" onclick="submitTestimonial()">Submit Testimonial</button>
+          <p style="font-size:0.72rem;color:var(--text-dimmer);margin-top:12px;text-align:center;">Your testimonial will be reviewed before publishing.</p>
+        </div>
+        <div class="form-success" id="testimonialSuccess">
+          <div class="success-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <h4>Thank You!</h4>
+          <p>Your testimonial has been submitted. We'll review it shortly.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 
 <!-- FOOTER -->
 <footer>
@@ -1383,11 +1458,12 @@ const observer = new IntersectionObserver((entries) => {
 reveals.forEach(el => observer.observe(el));
 
 // ─── LICENSE FORM ───
-function submitLicenseForm() {
+async function submitLicenseForm() {
   const name = document.getElementById('licenseName').value.trim();
   const email = document.getElementById('licenseEmail').value.trim();
   const org = document.getElementById('licenseOrg').value.trim();
   const use = document.getElementById('licenseUse').value;
+  const btn = document.querySelector('.form-submit');
 
   if (!name || !email || !org || !use) {
     alert('Please fill in all fields.');
@@ -1398,13 +1474,37 @@ function submitLicenseForm() {
     return;
   }
 
-  // Show success state
-  document.getElementById('formContent').style.display = 'none';
-  document.getElementById('formSuccess').style.display = 'block';
+  // Loading state
+  btn.textContent = 'Sending...';
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
 
-  // Log to console for now (replace with backend endpoint later)
-  console.log('License Request:', { name, email, org, use });
+  try {
+    const res = await fetch('/api/license-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, organization: org, useCase: use })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      document.getElementById('formContent').style.display = 'none';
+      document.getElementById('formSuccess').style.display = 'block';
+    } else {
+      btn.textContent = 'Request Free License';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      alert(data.error || 'Something went wrong. Please try again.');
+    }
+  } catch (err) {
+    btn.textContent = 'Request Free License';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    alert('Network error. Please check your connection and try again.');
+  }
 }
+
 
 // ─── NAV ACTIVE STATE ───
 window.addEventListener('scroll', () => {
@@ -1413,6 +1513,124 @@ window.addEventListener('scroll', () => {
     ? 'rgba(10,12,15,0.92)'
     : 'rgba(10,12,15,0.7)';
 });
+// ─── DYNAMIC TESTIMONIALS LOADING ───
+async function loadTestimonials() {
+  try {
+    const res = await fetch('/api/testimonials');
+    const data = await res.json();
+
+    if (data.success && data.testimonials.length > 0) {
+      const grid = document.querySelector('.testimonials-grid');
+      grid.innerHTML = ''; // Clear static ones
+
+      data.testimonials.slice(0, 3).forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'testimonial-card reveal visible';
+        card.innerHTML = `
+          <div>
+            <div class="testimonial-stars">${'★'.repeat(t.rating)}${'☆'.repeat(5-t.rating)}</div>
+            <blockquote>"${t.quote}"</blockquote>
+          </div>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">${t.avatar}</div>
+            <div class="testimonial-author-info">
+              <div class="name">${t.name}</div>
+              <div class="role">${t.role}${t.company ? ', ' + t.company : ''}</div>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+  } catch (err) {
+    console.log('Failed to load dynamic testimonials, using static ones');
+  }
+}
+
+// Load on page load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadTestimonials);
+} else {
+  loadTestimonials();
+}
+
+// ─── RATING PICKER ───
+let selectedRating = 5; // default
+document.querySelectorAll('.rating-star').forEach(star => {
+  star.addEventListener('click', function() {
+    selectedRating = parseInt(this.dataset.rating);
+    document.querySelectorAll('.rating-star').forEach((s, i) => {
+      if (i < selectedRating) {
+        s.classList.add('active');
+      } else {
+        s.classList.remove('active');
+      }
+    });
+  });
+});
+
+// Set default rating (5 stars)
+document.querySelectorAll('.rating-star').forEach(s => s.classList.add('active'));
+
+// Character counter
+document.getElementById('testQuote')?.addEventListener('input', function() {
+  document.getElementById('quoteCount').textContent = this.value.length;
+});
+
+// ─── TESTIMONIAL SUBMISSION ───
+async function submitTestimonial() {
+  const name = document.getElementById('testName').value.trim();
+  const email = document.getElementById('testEmail').value.trim();
+  const role = document.getElementById('testRole').value.trim();
+  const company = document.getElementById('testCompany').value.trim();
+  const quote = document.getElementById('testQuote').value.trim();
+  const btn = document.getElementById('submitTestBtn');
+
+  if (!name || !email || !role || !quote) {
+    alert('Please fill in all required fields (marked with *)');
+    return;
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    alert('Please enter a valid email address.');
+    return;
+  }
+
+  if (quote.length < 20) {
+    alert('Please write at least 20 characters about your experience.');
+    return;
+  }
+
+  // Loading state
+  btn.textContent = 'Submitting...';
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+
+  try {
+    const res = await fetch('/api/testimonial-submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, role, company, quote, rating: selectedRating })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      document.getElementById('testimonialFormContent').style.display = 'none';
+      document.getElementById('testimonialSuccess').style.display = 'block';
+    } else {
+      btn.textContent = 'Submit Testimonial';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      alert(data.error || 'Something went wrong. Please try again.');
+    }
+  } catch (err) {
+    btn.textContent = 'Submit Testimonial';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    alert('Network error. Please check your connection and try again.');
+  }
+}
 </script>
 </body>
 </html>
