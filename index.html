@@ -995,6 +995,10 @@ BLOCK (around line 700-800) -->
       <div class="num">0</div>
       <div class="label">Cloud Calls</div>
     </div>
+    <div class="hero-stat">
+      <div class="num" id="downloadCount">—</div>
+      <div class="label">Downloads</div>
+    </div>
   </div>
 </section>
 
@@ -1221,7 +1225,7 @@ BLOCK (around line 700-800) -->
     <div class="download-box reveal">
       <h3>Ready to take control of your documents?</h3>
       <p>Download UniDocVerse for macOS. Free to use. No account required. No data leaves your machine.</p>
-      <a href="#" class="btn-primary" onclick="event.preventDefault(); alert('DMG download will be hosted on Cloudflare R2 — link coming soon.');">
+      <a href="#" class="btn-primary" id="downloadBtn" onclick="event.preventDefault(); trackAndDownload();">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Download for macOS (ARM64)
       </a>
@@ -1631,6 +1635,57 @@ async function submitTestimonial() {
     alert('Network error. Please check your connection and try again.');
   }
 }
+
+// ─── DOWNLOAD TRACKING ───
+async function fetchDownloadCount() {
+  try {
+    const res = await fetch('/api/download');
+    const data = await res.json();
+    const el = document.getElementById('downloadCount');
+    if (el && data.count !== undefined) {
+      el.textContent = data.count.toLocaleString();
+    }
+  } catch (err) {
+    console.log('Download count fetch failed');
+  }
+}
+
+async function trackAndDownload() {
+  const btn = document.getElementById('downloadBtn');
+  btn.textContent = 'Starting...';
+  btn.style.opacity = '0.7';
+
+  try {
+    const res = await fetch('/api/download', { method: 'POST' });
+    const data = await res.json();
+
+    if (data.success && data.url) {
+      // Trigger the download
+      window.location.href = data.url;
+
+      // Update the counter on page
+      setTimeout(() => {
+        fetchDownloadCount();
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download for macOS (ARM64)`;
+        btn.style.opacity = '1';
+      }, 2000);
+    } else {
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download for macOS (ARM64)`;
+      btn.style.opacity = '1';
+    }
+  } catch (err) {
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download for macOS (ARM64)`;
+    btn.style.opacity = '1';
+  }
+}
+
+// Fetch download count on page load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', fetchDownloadCount);
+} else {
+  fetchDownloadCount();
+}
+
 </script>
 </body>
 </html>
