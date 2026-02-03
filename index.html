@@ -1030,24 +1030,6 @@ Trusted across Law, Finance, Healthcare, Insurance, Government, Education, Real 
           <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span> No licensing violations or compliance conflicts</li>
         </ul>
       </div>
-      <div class="right">
-        <div class="privacy-code">
-          <span class="comment"># UniDocVerse processing flow</span><br>
-          <span class="keyword">class</span> <span class="func">UniDocVerse</span>:<br>
-          &nbsp;&nbsp;<span class="keyword">def</span> <span class="func">analyze</span>(doc):<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># All processing is local</span><br>
-          &nbsp;&nbsp;&nbsp;&nbsp;cloud_calls = <span class="string">0</span><br>
-          &nbsp;&nbsp;&nbsp;&nbsp;data_sent = <span class="string">"nowhere"</span><br>
-          &nbsp;&nbsp;&nbsp;&nbsp;internet = <span class="string">False</span><br><br>
-          &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># 11 agents run on-device</span><br>
-          &nbsp;&nbsp;&nbsp;&nbsp;pipeline = <span class="func">LangGraph</span>(<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;agents=<span class="string">11</span>,<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;model=<span class="string">"ollama/mistral"</span>,<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;embeddings=<span class="string">"local"</span><br>
-          &nbsp;&nbsp;&nbsp;&nbsp;">)<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> pipeline.<span class="func">run</span>(doc)
-        </div>
-      </div>
     </div>
   </div>
 </section>
