@@ -1,29 +1,12 @@
 // functions/api/license-request.js
-// Cloudflare Pages Function — handles license request form submissions
-// Sends confirmation email to user + notification to admin via Gmail
+// Handles license request form submissions
+// Uses Resend via fetch() — no npm, no nodemailer
 
-import nodemailer from 'nodemailer';
+import { sendEmail } from './_email.js';
 
-// ─── Gmail transporter (uses App Password from env vars) ───
-function createTransporter(env) {
-  return nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // TLS
-    auth: {
-      user: env.GMAIL_USER,          // your gmail address
-      pass: env.GMAIL_APP_PASSWORD   // Gmail App Password (not your real password)
-    }
-  });
-}
-
-// ─── Confirmation email to the user ───
-function userConfirmationEmail(name, email, org, useCase) {
-  return {
-    from: `UniDocVerse <${process.env.GMAIL_USER || 'noreply@unidocverse.com'}>`,
-    to: email,
-    subject: 'Your UniDocVerse License Request — Received ✓',
-    html: `
+// ─── Confirmation email HTML to the user ───
+function userConfirmationHTML(name, org, useCase) {
+  return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -90,17 +73,12 @@ function userConfirmationEmail(name, email, org, useCase) {
   </div>
 </div>
 </body>
-</html>`
-  };
+</html>`;
 }
 
-// ─── Admin notification to Vijay ───
-function adminNotificationEmail(adminEmail, name, email, org, useCase) {
-  return {
-    from: `UniDocVerse <${adminEmail}>`,
-    to: adminEmail,
-    subject: `[UniDocVerse] New License Request — ${name} (${org})`,
-    html: `
+// ─── Admin notification email HTML ───
+function adminNotificationHTML(name, email, org, useCase) {
+  return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -108,14 +86,14 @@ function adminNotificationEmail(adminEmail, name, email, org, useCase) {
   body { background:#0a0c0f; color:#e2e8f0; font-family:'Segoe UI',system-ui,sans-serif; margin:0; padding:40px 16px; }
   .container { max-width:520px; margin:0 auto; }
   .card { background:#111418; border:1px solid #1e2530; border-radius:12px; overflow:hidden; }
-  .header { padding:24px 28px; border-bottom:1px solid #1e2530; display:flex; align-items:center; gap:12px; }
-  .badge { background:rgba(63,185,80,0.12); border:1px solid rgba(63,185,80,0.25); color:#3fb950; font-size:0.7rem; padding:4px 10px; border-radius:4px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+  .header { padding:24px 28px; border-bottom:1px solid #1e2530; }
+  .badge { background:rgba(63,185,80,0.12); border:1px solid rgba(63,185,80,0.25); color:#3fb950; font-size:0.7rem; padding:4px 10px; border-radius:4px; font-weight:600; display:inline-block; margin-bottom:8px; }
   .header h2 { font-size:1rem; margin:0; color:#e2e8f0; }
   .body { padding:28px; }
   .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   .info-box { background:#0a0c0f; border:1px solid #1e2530; border-radius:8px; padding:14px; }
   .info-box .label { font-size:0.68rem; color:#484f58; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
-  .info-box .value { font-size:0.82rem; color:#e2e8f0; font-weight:500; }
+  .info-box .value { font-size:0.82rem; color:#e2e8f0; font-weight:500; word-break:break-word; }
   .actions { margin-top:24px; padding-top:20px; border-top:1px solid #1e2530; display:flex; gap:10px; }
   .btn { display:inline-block; padding:9px 18px; border-radius:6px; font-size:0.78rem; font-weight:600; text-decoration:none; }
   .btn-green { background:#3fb950; color:#0a0c0f; }
@@ -133,7 +111,7 @@ function adminNotificationEmail(adminEmail, name, email, org, useCase) {
     <div class="body">
       <div class="info-grid">
         <div class="info-box"><div class="label">Name</div><div class="value">${name}</div></div>
-        <div class="info-box"><div class="label">Email</div><div class="value" style="font-size:0.75rem;word-break:break-all;">${email}</div></div>
+        <div class="info-box"><div class="label">Email</div><div class="value" style="font-size:0.75rem;">${email}</div></div>
         <div class="info-box"><div class="label">Organization</div><div class="value">${org}</div></div>
         <div class="info-box"><div class="label">Use Case</div><div class="value">${useCase.charAt(0).toUpperCase() + useCase.slice(1)}</div></div>
       </div>
@@ -146,13 +124,11 @@ function adminNotificationEmail(adminEmail, name, email, org, useCase) {
   </div>
 </div>
 </body>
-</html>`
-  };
+</html>`;
 }
 
 // ─── Main handler ───
 export async function onRequestPost(context) {
-  // CORS headers
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
@@ -161,7 +137,6 @@ export async function onRequestPost(context) {
   };
 
   try {
-    // Parse body
     const body = await context.request.json();
     const { name, email, organization, useCase } = body;
 
@@ -173,44 +148,33 @@ export async function onRequestPost(context) {
       );
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid email address.' }),
         { status: 400, headers }
       );
     }
 
-    // ─── Get env vars ───
-    const gmailUser = context.env.GMAIL_USER;
-    const gmailPass = context.env.GMAIL_APP_PASSWORD;
+    const adminEmail = context.env.GMAIL_USER || 'unidocverse@gmail.com';
 
-    if (!gmailUser || !gmailPass) {
-      console.error('Missing env vars: GMAIL_USER or GMAIL_APP_PASSWORD');
-      return new Response(
-        JSON.stringify({ success: false, error: 'Email configuration error. Please try again later.' }),
-        { status: 500, headers }
-      );
-    }
-
-    // ─── Create transporter ───
-    const transporter = createTransporter(context.env);
-
-    // ─── Send both emails in parallel ───
+    // ─── Send both emails in parallel via Resend ───
     const [userResult, adminResult] = await Promise.all([
-      transporter.sendMail(userConfirmationEmail(name, email, organization, useCase)),
-      transporter.sendMail(adminNotificationEmail(gmailUser, name, email, organization, useCase))
+      sendEmail(context.env, {
+        to: email,
+        subject: 'Your UniDocVerse License Request — Received ✓',
+        html: userConfirmationHTML(name, organization, useCase)
+      }),
+      sendEmail(context.env, {
+        to: adminEmail,
+        subject: `[UniDocVerse] New License Request — ${name} (${organization})`,
+        html: adminNotificationHTML(name, email, organization, useCase)
+      })
     ]);
 
-    // ─── Log to console (visible in Cloudflare dashboard) ───
-    console.log('LICENSE REQUEST:', JSON.stringify({
-      name,
-      email,
-      organization,
-      useCase,
-      userEmailId: userResult.messageId,
-      adminEmailId: adminResult.messageId,
-      timestamp: new Date().toISOString()
+    console.log('LICENSE REQUEST SENT:', JSON.stringify({
+      name, email, organization, useCase,
+      userEmailId: userResult.id,
+      adminEmailId: adminResult.id
     }));
 
     return new Response(
@@ -227,7 +191,6 @@ export async function onRequestPost(context) {
   }
 }
 
-// Handle CORS preflight
 export async function onRequestOptions() {
   return new Response(null, {
     status: 204,

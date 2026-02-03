@@ -1,41 +1,26 @@
 // functions/api/testimonial-submit.js
-// Cloudflare Pages Function — handles testimonial submissions
-// Uses Cloudflare D1 (SQLite on edge) — no external database needed
+// Handles testimonial form submissions
+// Saves to D1, rate limits via KV, sends emails via Resend
+// No npm, no nodemailer — native fetch() only
 
-import nodemailer from 'nodemailer';
+import { sendEmail } from './_email.js';
 
 // ─── Save to Cloudflare D1 ───
 async function saveTestimonial(db, { name, email, role, company, quote, rating }) {
-  try {
-    const result = await db.prepare(`
-      INSERT INTO testimonials (name, email, role, company, quote, rating, approved, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, 0, datetime('now'))
-    `).bind(name, email, role, company || null, quote, rating).run();
+  const result = await db.prepare(`
+    INSERT INTO testimonials (name, email, role, company, quote, rating, approved, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, 0, datetime('now'))
+  `).bind(name, email, role, company || null, quote, rating).run();
 
-    return {
-      id: result.meta.last_row_id,
-      name,
-      email,
-      role,
-      company,
-      quote,
-      rating,
-      approved: false,
-      created_at: new Date().toISOString()
-    };
-  } catch (error) {
-    console.error('D1 INSERT ERROR:', error.message);
-    throw error;
-  }
+  return {
+    id: result.meta.last_row_id,
+    name, email, role, company, quote, rating
+  };
 }
 
-// ─── Admin notification email ───
-function adminNotificationEmail(adminEmail, { id, name, email, role, company, quote, rating }) {
-  return {
-    from: `UniDocVerse <${adminEmail}>`,
-    to: adminEmail,
-    subject: `[UniDocVerse] New Testimonial #${id} — ${name} (${rating}⭐)`,
-    html: `
+// ─── Admin notification email HTML ───
+function adminNotificationHTML({ id, name, email, role, company, quote, rating }) {
+  return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -53,7 +38,10 @@ function adminNotificationEmail(adminEmail, { id, name, email, role, company, qu
   .info-box { background:#0a0c0f; border:1px solid #1e2530; border-radius:8px; padding:14px; }
   .info-box .label { font-size:0.68rem; color:#484f58; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
   .info-box .value { font-size:0.82rem; color:#e2e8f0; font-weight:500; word-break:break-word; }
-  .sql-command { background:#0d1117; border:1px solid #1e2530; border-radius:8px; padding:14px; font-family:monospace; font-size:0.75rem; color:#3fb950; margin:20px 0; overflow-x:auto; }
+  .sql-block { background:#0d1117; border:1px solid #1e2530; border-radius:8px; padding:16px; margin:20px 0; }
+  .sql-label { font-size:0.72rem; color:#8b949e; margin-bottom:8px; }
+  .sql-command { font-family:monospace; font-size:0.75rem; color:#3fb950; overflow-x:auto; white-space:pre-wrap; }
+  .sql-note { font-size:0.7rem; color:#484f58; margin-top:8px; }
   .timestamp { font-size:0.68rem; color:#484f58; margin-top:16px; text-align:center; }
 </style>
 </head>
@@ -65,7 +53,7 @@ function adminNotificationEmail(adminEmail, { id, name, email, role, company, qu
       <h2>Pending Your Approval</h2>
     </div>
     <div class="body">
-      <div class="rating">${'★'.repeat(rating)}${'☆'.repeat(5-rating)}</div>
+      <div class="rating">${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}</div>
       <div class="quote">"${quote}"</div>
       <div class="info-grid">
         <div class="info-box"><div class="label">Name</div><div class="value">${name}</div></div>
@@ -73,27 +61,22 @@ function adminNotificationEmail(adminEmail, { id, name, email, role, company, qu
         <div class="info-box"><div class="label">Company</div><div class="value">${company || 'Not specified'}</div></div>
         <div class="info-box"><div class="label">Email</div><div class="value">${email}</div></div>
       </div>
-      <div style="background:#161b22;border:1px solid #1e2530;border-radius:8px;padding:16px;margin-bottom:16px;">
-        <div style="font-size:0.72rem;color:#8b949e;margin-bottom:8px;">To approve, run in terminal:</div>
-        <div class="sql-command">wrangler d1 execute unidocverse-db --command="UPDATE testimonials SET approved=1, approved_at=datetime('now') WHERE id=${id}"</div>
-        <div style="font-size:0.7rem;color:#484f58;margin-top:8px;">Or: Cloudflare Dashboard → D1 → unidocverse-db → Query</div>
+      <div class="sql-block">
+        <div class="sql-label">To approve, run in terminal:</div>
+        <div class="sql-command">wrangler d1 execute unidocverse-db --remote --command="UPDATE testimonials SET approved=1, approved_at=datetime('now') WHERE id=${id}"</div>
+        <div class="sql-note">Or: Cloudflare Dashboard → D1 → unidocverse-db → Query</div>
       </div>
       <div class="timestamp">Submitted: ${new Date().toUTCString()}</div>
     </div>
   </div>
 </div>
 </body>
-</html>`
-  };
+</html>`;
 }
 
-// ─── User thank you email ───
-function userThankYouEmail(adminEmail, { name, email }) {
-  return {
-    from: `UniDocVerse <${adminEmail}>`,
-    to: email,
-    subject: 'Thank you for your UniDocVerse testimonial!',
-    html: `
+// ─── User thank you email HTML ───
+function userThankYouHTML(name) {
+  return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -106,7 +89,7 @@ function userThankYouEmail(adminEmail, { name, email }) {
   .logo span { color:#3fb950; }
   .header h2 { font-size:1.1rem; color:#3fb950; font-weight:500; margin:0; }
   .body { padding:32px 36px; }
-  .greeting { font-size:0.95rem; color:#8b949e; line-height:1.6; }
+  .greeting { font-size:0.95rem; color:#8b949e; line-height:1.6; margin-bottom:16px; }
   .footer { padding:24px 36px; border-top:1px solid #1e2530; text-align:center; }
   .footer p { font-size:0.72rem; color:#484f58; margin:0; }
   .footer a { color:#3fb950; text-decoration:none; }
@@ -121,8 +104,8 @@ function userThankYouEmail(adminEmail, { name, email }) {
     </div>
     <div class="body">
       <p class="greeting">Hi ${name},</p>
-      <p class="greeting" style="margin-top:16px;">Thank you for sharing your experience with UniDocVerse. Your feedback helps us improve and helps others discover the platform.</p>
-      <p class="greeting" style="margin-top:16px;">We'll review your testimonial shortly. If approved, it will appear on our website soon.</p>
+      <p class="greeting">Thank you for sharing your experience with UniDocVerse. Your feedback helps us improve and helps others discover the platform.</p>
+      <p class="greeting">We'll review your testimonial shortly. If approved, it will appear on our website soon.</p>
       <p class="greeting" style="margin-top:24px;">We truly appreciate your support!</p>
     </div>
     <div class="footer">
@@ -131,8 +114,7 @@ function userThankYouEmail(adminEmail, { name, email }) {
   </div>
 </div>
 </body>
-</html>`
-  };
+</html>`;
 }
 
 // ─── Main handler ───
@@ -170,84 +152,64 @@ export async function onRequestPost(context) {
       );
     }
 
-    const validRating = rating && rating >= 1 && rating <= 5 ? rating : 5;
+    const validRating = (rating && rating >= 1 && rating <= 5) ? rating : 5;
 
-
-    // ─── RATE LIMITING (Prevents spam/abuse) ───
+    // ─── Rate Limiting via KV ───
     const clientIP = context.request.headers.get('CF-Connecting-IP') || 'unknown';
     const rateLimitKey = `testimonial:${clientIP}:${email.toLowerCase()}`;
 
-    // Check KV for rate limiting
     if (context.env.RATE_LIMIT_KV) {
       try {
         const lastSubmission = await context.env.RATE_LIMIT_KV.get(rateLimitKey);
-
         if (lastSubmission) {
           const timeSince = Date.now() - parseInt(lastSubmission);
-          const cooldownMinutes = 60; // 1 hour cooldown
-
-          if (timeSince < cooldownMinutes * 60 * 1000) {
-            const minutesLeft = Math.ceil((cooldownMinutes * 60 * 1000 - timeSince) / 60000);
+          const cooldownMs = 60 * 60 * 1000; // 1 hour
+          if (timeSince < cooldownMs) {
+            const minutesLeft = Math.ceil((cooldownMs - timeSince) / 60000);
             return new Response(
-              JSON.stringify({
-                success: false,
-                error: `Please wait ${minutesLeft} minutes before submitting another testimonial.`
-              }),
+              JSON.stringify({ success: false, error: `Please wait ${minutesLeft} minutes before submitting again.` }),
               { status: 429, headers }
             );
           }
         }
-
-        // Store this submission timestamp
-        await context.env.RATE_LIMIT_KV.put(
-          rateLimitKey,
-          Date.now().toString(),
-          { expirationTtl: cooldownMinutes * 60 }
-        );
+        await context.env.RATE_LIMIT_KV.put(rateLimitKey, Date.now().toString(), { expirationTtl: 3600 });
       } catch (kvError) {
-        console.log('Rate limit check skipped (KV not available):', kvError.message);
+        console.log('KV rate limit skipped:', kvError.message);
       }
     }
 
-
-    // ─── Get D1 database ───
+    // ─── Save to D1 ───
     const db = context.env.DB;
     if (!db) {
-      console.error('D1 binding not found');
+      console.error('D1 binding "DB" not found');
       return new Response(
         JSON.stringify({ success: false, error: 'Database error.' }),
         { status: 500, headers }
       );
     }
 
-    // ─── Save to D1 ───
-    const testimonial = await saveTestimonial(db, {
-      name,
-      email,
-      role,
-      company,
-      quote,
-      rating: validRating
-    });
+    const testimonial = await saveTestimonial(db, { name, email, role, company, quote, rating: validRating });
+    console.log('TESTIMONIAL SAVED:', testimonial.id);
 
-    console.log('TESTIMONIAL SAVED TO D1:', testimonial.id);
+    // ─── Send emails via Resend (non-blocking — don't fail submission if email fails) ───
+    const adminEmail = context.env.GMAIL_USER || 'unidocverse@gmail.com';
 
-    // ─── Send emails ───
-    const gmailUser = context.env.GMAIL_USER;
-    const gmailPass = context.env.GMAIL_APP_PASSWORD;
-
-    if (gmailUser && gmailPass) {
-      const transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        auth: { user: gmailUser, pass: gmailPass }
-      });
-
+    try {
       await Promise.all([
-        transporter.sendMail(adminNotificationEmail(gmailUser, testimonial)),
-        transporter.sendMail(userThankYouEmail(gmailUser, testimonial))
+        sendEmail(context.env, {
+          to: adminEmail,
+          subject: `[UniDocVerse] New Testimonial #${testimonial.id} — ${name} (${validRating}⭐)`,
+          html: adminNotificationHTML(testimonial)
+        }),
+        sendEmail(context.env, {
+          to: email,
+          subject: 'Thank you for your UniDocVerse testimonial!',
+          html: userThankYouHTML(name)
+        })
       ]);
+      console.log('TESTIMONIAL EMAILS SENT');
+    } catch (emailErr) {
+      console.error('Email send failed (submission still saved):', emailErr.message);
     }
 
     return new Response(
@@ -256,7 +218,7 @@ export async function onRequestPost(context) {
     );
 
   } catch (error) {
-    console.error('ERROR:', error.message);
+    console.error('TESTIMONIAL SUBMIT ERROR:', error.message);
     return new Response(
       JSON.stringify({ success: false, error: 'Something went wrong.' }),
       { status: 500, headers }
