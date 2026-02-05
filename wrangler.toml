@@ -3,5 +3,6 @@ compatibility_date = "2024-01-01"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "unidocverse-db"
+database_name = "udv"
 database_id = "8738b3e3-53c3-4def-849a-8f5804503c9f"
+migrations_dir = "migrations"

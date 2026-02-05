@@ -155,16 +155,18 @@ export async function onRequestPost(context) {
       );
     }
 
-    const adminEmail = context.env.GMAIL_USER || 'unidocverse@gmail.com';
+    const adminEmail = "info@unidocverse.com";
 
     // ─── Send both emails in parallel via Resend ───
     const [userResult, adminResult] = await Promise.all([
       sendEmail(context.env, {
+        from: "UniDocVerse <info@unidocverse.com>",
         to: email,
         subject: 'Your UniDocVerse License Request — Received ✓',
         html: userConfirmationHTML(name, organization, useCase)
       }),
       sendEmail(context.env, {
+        from: "UniDocVerse <info@unidocverse.com>",
         to: adminEmail,
         subject: `[UniDocVerse] New License Request — ${name} (${organization})`,
         html: adminNotificationHTML(name, email, organization, useCase)

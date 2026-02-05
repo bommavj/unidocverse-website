@@ -192,7 +192,7 @@ export async function onRequestPost(context) {
     console.log('TESTIMONIAL SAVED:', testimonial.id);
 
     // ─── Send emails via Resend (non-blocking — don't fail submission if email fails) ───
-    const adminEmail = context.env.GMAIL_USER || 'unidocverse@gmail.com';
+    const adminEmail = 'info@unidocverse.com';
 
     try {
       await Promise.all([
